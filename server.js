@@ -3,6 +3,7 @@ const express = require("express");
 require("dotenv").config(); // Load environment variables
 const connectDB = require("./config/db"); // Import DB connection
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
+const cookieParser = require("cookie-parser");
 
 // Connect to Database
 connectDB();
@@ -19,6 +20,8 @@ const PORT = process.env.PORT || 3000; // Use port from .env or default to 3000
 // Body parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(cookieParser()); // Add this line
 
 // 4. Create a basic route (the waiter's rule)
 // This tells the server what to do when someone visits the main URL ('/')

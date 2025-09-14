@@ -63,5 +63,73 @@ const authUser = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Get user profile
+// @route   GET /api/users/profile
+// @access  Private
+const getUserProfile = asyncHandler(async (req, res) => {
+  // Because our 'protect' middleware already fetched the user and attached it
+  // to the request, we can simply access it via req.user.
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
+// @desc    Logout user / clear cookie
+// @route   POST /api/users/logout
+// @access  Private
+const logoutUser = asyncHandler(async (req, res) => {
+  res.cookie("jwt", "", {
+    httpOnly: true,
+    expires: new Date(0), // Set to a past date to expire immediately
+  });
+  res.status(200).json({ message: "Logged out successfully" });
+});
+
+// @desc    Update user profile
+// @route   PUT /api/users/profile
+// @access  Private
+const updateUserProfile = asyncHandler(async (req, res) => {
+  // req.user is available from our 'protect' middleware
+  const user = await User.findById(req.user._id);
+  if (user) {
+    // Update fields if they are provided in the request body
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+
+    if (req.body.password) {
+      // The pre-save hook in our user model will automatically hash this
+      user.password = req.body.password;
+    }
+
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAdmin: updatedUser.isAdmin,
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
 // Don't forget to export the new function
-module.exports = { registerUser, authUser };
+module.exports = {
+  registerUser,
+  authUser,
+  getUserProfile,
+  logoutUser,
+  updateUserProfile,
+};
